@@ -1,0 +1,10 @@
+{
+    "id": "REPLACEME-example",
+    "version": "1.0.0",
+    "mixins": [
+        "REPLACEME-example.mixins.json"
+    ],
+    "wideners": [
+        "REPLACEME-example.accesswidener"
+    ]
+}

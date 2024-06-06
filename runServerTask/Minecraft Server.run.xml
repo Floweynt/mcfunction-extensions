@@ -1,0 +1,17 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Minecraft Server" type="Application" factoryName="Application">
+    <option name="ALTERNATIVE_JRE_PATH" value="17" />
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+    <envs>
+      <env name="IS_DEVENV" value="1" />
+    </envs>
+    <option name="MAIN_CLASS_NAME" value="space.vectrix.ignite.IgniteBootstrap" />
+    <module name="monumenta-mixins.main" />
+    <option name="PROGRAM_PARAMETERS" value="-nogui" />
+    <option name="VM_PARAMETERS" value="-Dignite.locator=classpath -javaagent:$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.spongepowered/mixin/0.8.5/9d1c0c3a304ae6697ecd477218fa61b850bf57fc/mixin-0.8.5.jar" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/run/" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

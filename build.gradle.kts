@@ -14,17 +14,11 @@ repositories {
     maven("https://repo.codemc.io/repository/maven-public/")
 }
 
-val igniteVersion: String by project
-val paperVersion: String by project
-val mixinVersion: String by project
-val mixinExtrasVersion: String by project
-val tinyRemapperVersion: String by project
-
 val shadowImplementation: Configuration by configurations.creating
 paperweight.awPath.set(file("src/main/resources/REPLACEME-example.accesswidener"))
 
 dependencies {
-    paperweight.paperDevBundle(paperVersion)
+    paperweight.paperDevBundle(libs.versions.paper.get().replace("userdev-", ""))
 
     // We need ignite!
     implementation(libs.bundles.ignite)

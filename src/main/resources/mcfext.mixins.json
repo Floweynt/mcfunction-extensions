@@ -1,0 +1,13 @@
+{
+    "required": true,
+    "minVersion": "0.8.5",
+    "package": "com.floweytf.mcfext.mixin.core",
+    "plugin": "com.floweytf.mcfext.mixin.plugin.CorePlugin",
+    "target": "@env(DEFAULT)",
+    "compatibilityLevel": "JAVA_17",
+    "server": [
+        "CallFunctionMixin",
+        "CommandsMixin",
+        "ServerFunctionLibraryMixin"
+    ]
+}

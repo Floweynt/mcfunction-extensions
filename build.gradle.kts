@@ -15,7 +15,7 @@ repositories {
 }
 
 val shadowImplementation: Configuration by configurations.creating
-paperweight.awPath.set(file("src/main/resources/REPLACEME-example.accesswidener"))
+paperweight.awPath.set(file("src/main/resources/mcfext.accesswidener"))
 
 dependencies {
     paperweight.paperDevBundle(libs.versions.paper.get().replace("userdev-", ""))

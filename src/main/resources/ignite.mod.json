@@ -1,10 +1,10 @@
 {
-    "id": "REPLACEME-example",
+    "id": "mcfext",
     "version": "1.0.0",
     "mixins": [
-        "REPLACEME-example.mixins.json"
+        "mcfext.mixins.json"
     ],
     "wideners": [
-        "REPLACEME-example.accesswidener"
+        "mcfext.accesswidener"
     ]
 }

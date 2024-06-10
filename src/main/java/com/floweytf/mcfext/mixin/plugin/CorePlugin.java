@@ -1,4 +1,4 @@
-package org.example.mixin.plugin;
+package com.floweytf.mcfext.mixin.plugin;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

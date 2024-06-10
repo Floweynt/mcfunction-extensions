@@ -19,7 +19,6 @@ ignite-launcher = { module = "space.vectrix.ignite:ignite-launcher", version.ref
 mixin-core = { module = "org.spongepowered:mixin", version.ref = "mixin" }
 mixin-extras = { module = "io.github.llamalad7:mixinextras-common", version.ref = "mixin-extras" }
 paper = { module = "io.papermc.paper:paper-server", version.ref = "paper"}
-
 tinyremapper = { module = "net.fabricmc:tiny-remapper", version.ref = "tinyremapper" }
 
 maven-resolver-connector-basic = { module = "org.apache.maven.resolver:maven-resolver-connector-basic", version.ref = "maven-resolver" }

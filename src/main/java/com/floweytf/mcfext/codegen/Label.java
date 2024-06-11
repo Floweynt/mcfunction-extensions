@@ -16,13 +16,17 @@ public class Label {
 
     public int offset() {
         if (offset == -1) {
-            throw new IllegalStateException("Accessing label before it is defined");
+            throw new IllegalStateException("Accessing target before it is defined");
         }
         return offset;
     }
 
     @Override
     public String toString() {
-        return String.format("%s$%s", name == null ? "_" : name, id);
+        if (name == null) {
+            return "$" + id;
+        }
+
+        return String.format("%s$%s", name, id);
     }
 }

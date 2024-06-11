@@ -9,7 +9,6 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Represents a special control flow instruction within a "compiled" MCFunction.
  *
- * @param <T> The type, usually {@link net.minecraft.commands.CommandSourceStack}
  * @see FuncExecState
  */
 @FunctionalInterface
@@ -19,7 +18,8 @@ public interface ControlInstr<T> extends UnboundEntryAction<T> {
     }
 
     @Override
-    default void execute(@NotNull T source, @NotNull ExecutionContext<T> context, @NotNull Frame frame) {
+    default void execute(@NotNull T source, @NotNull ExecutionContext<T> context,
+                         @NotNull Frame frame) {
     }
 
     /**

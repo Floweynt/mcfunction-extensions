@@ -4,27 +4,17 @@ import com.floweytf.mcfext.execution.FuncExecState;
 import net.minecraft.commands.execution.ExecutionContext;
 import net.minecraft.commands.execution.Frame;
 
-/**
- * Subroutine call instruction.
- * <h3>Pseudocode (assembly)</h3>
- * <pre>
- * {@code
- * PUSH[InstrAddress](%ip)
- * %ip = target
- * }
- * </pre>
- *
- * @param target The instruction to jump to.
- */
-public record CallInstr<T>(int target) implements ControlInstr<T> {
+public record SubroutineCallInstr<T>(int target) implements ControlInstr<T> {
     @Override
     public void modifyState(FuncExecState<T> state, ExecutionContext<T> context, Frame frame) {
         state.stack.pushInstrAddress(state.instr);
+        state.pushSource();
+        state.basePointerStack.push(state.stack.size());
         state.instr = target;
     }
 
     @Override
     public String toString() {
-        return "builtin::call[" + target + "]";
+        return "subroutine::call[" + target + "]";
     }
 }

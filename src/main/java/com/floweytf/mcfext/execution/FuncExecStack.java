@@ -13,7 +13,6 @@ import java.util.stream.Collectors;
  * MCFunction uses a stack machine execution model for implementing control flow.
  * See <a href="https://en.wikipedia.org/wiki/Stack_machine">wikipedia</a>.
  *
- * @param <T> The type of command source, typically {@link net.minecraft.commands.CommandSourceStack}
  * @see FuncExecState
  */
 public class FuncExecStack<T> {
@@ -97,5 +96,13 @@ public class FuncExecStack<T> {
             case CONTEXT_LIST -> "ContextList[" + ((List<T>) x.second()).size() + "]";
             case INSTR_ADDRESS -> "InstrAddress[" + x.second() + "]";
         }).collect(Collectors.joining(", ")) + "]";
+    }
+
+    public void discard() {
+        stack.pop();
+    }
+
+    public int size() {
+        return stack.size();
     }
 }

@@ -8,6 +8,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CommandLineReader {
+    public static final String ERR_LINE_CONT = "line continuation at end-of-file";
+    public static final String ERR_FORWARD_SLASH = "unknown or invalid command '%s' (do you mean '%s'?)";
+    public static final String ERR_BAD_COMMENT = "'//' is not allowed, use '#' for comment";
+
     private final List<String> entries;
     private final IntArrayList entryLineNumbers;
     private int index;
@@ -32,7 +36,7 @@ public class CommandLineReader {
                 StringBuilder reader = new StringBuilder(line);
                 do {
                     if (++i == lines.size()) {
-                        context.reportErr(i, Diagnostic.ERR_LINE_CONT);
+                        context.reportErr(i, ERR_LINE_CONT);
                         break;
                     }
 
@@ -55,11 +59,11 @@ public class CommandLineReader {
             if (reader.peek() == '/') {
                 reader.skip();
                 if (reader.peek() == '/') {
-                    context.reportErr(i, Diagnostic.ERR_BAD_CMD, cmd);
+                    context.reportErr(i, ERR_BAD_COMMENT, cmd);
                     continue;
                 }
 
-                context.reportErr(i, Diagnostic.ERR_FORWARD_SLASH, cmd, reader.readUnquotedString());
+                context.reportErr(i, ERR_FORWARD_SLASH, cmd, reader.readUnquotedString());
                 continue;
             }
 
@@ -77,6 +81,10 @@ public class CommandLineReader {
 
     public int lineNumber() {
         return entryLineNumbers.getInt(index);
+    }
+
+    public int index() {
+        return index;
     }
 
     public void next() {

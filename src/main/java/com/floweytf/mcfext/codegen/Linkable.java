@@ -4,7 +4,6 @@ import com.floweytf.mcfext.execution.instr.BranchInstr;
 import com.floweytf.mcfext.execution.instr.CallInstr;
 import com.floweytf.mcfext.execution.instr.ControlInstr;
 import com.floweytf.mcfext.execution.instr.PushInstrAddrInstr;
-import net.minecraft.commands.ExecutionCommandSource;
 import net.minecraft.commands.execution.UnboundEntryAction;
 
 import java.util.List;
@@ -17,20 +16,20 @@ public interface Linkable<T> {
 
     UnboundEntryAction<T> link();
 
-    static <T extends ExecutionCommandSource<T>> Linkable<T> call(Label target) {
+    static <T> Linkable<T> call(Label target) {
         return wrap(List.of(target), () -> new CallInstr<>(target.offset()));
     }
 
-    static <T extends ExecutionCommandSource<T>> Linkable<T> branch(Label target) {
-        return wrap(List.of(target), () -> new BranchInstr<>(target.offset()));
+    static <T> Linkable<T> branch(Label target) {
+        return wrap(List.of(target), () -> new BranchInstr<T>(target.offset()));
     }
 
-    static <T extends ExecutionCommandSource<T>> Linkable<T> pushInstrAddr(Label target) {
-        return wrap(List.of(target), () -> new PushInstrAddrInstr<>(target.offset()));
+    static <T> Linkable<T> pushInstrAddr(Label target) {
+        return wrap(List.of(target), () -> new PushInstrAddrInstr<T>(target.offset()));
     }
 
-    static <T extends ExecutionCommandSource<T>> Linkable<T> exit() {
-        return wrap(() -> new BranchInstr<>(Integer.MAX_VALUE));
+    static <T> Linkable<T> exit() {
+        return wrap(() -> new BranchInstr<T>(Integer.MAX_VALUE));
     }
 
     static <T> Linkable<T> wrap(Supplier<ControlInstr<T>> gen) {

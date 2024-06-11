@@ -1,6 +1,7 @@
 package com.floweytf.mcfext.parse.ast;
 
 import com.floweytf.mcfext.codegen.CodeGenerator;
+import com.floweytf.mcfext.parse.ParseContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.execution.UnboundEntryAction;
 
@@ -14,7 +15,7 @@ public class CommandAST extends ASTNode {
     }
 
     @Override
-    public void emit(CodeGenerator<CommandSourceStack> generator) {
+    public void emit(ParseContext parseCtx, CodegenContext codegenCtx, CodeGenerator<CommandSourceStack> generator) {
         generator.emitPlain(action);
     }
 

@@ -1,6 +1,6 @@
 package com.floweytf.mcfext.mixin.core;
 
-import com.floweytf.mcfext.parse.Parser;
+import com.floweytf.mcfext.parse.parser.Parser;
 import com.google.common.collect.ImmutableMap;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -42,7 +42,7 @@ public class ServerFunctionLibraryMixin {
         ResourceLocation id, CommandDispatcher<T> dispatcher, T source,
         List<String> lines
     ) {
-        return (CommandFunction<T>) Parser.parseLine(
+        return (CommandFunction<T>) Parser.compileFunction(
             (CommandDispatcher<CommandSourceStack>) dispatcher,
             (CommandSourceStack) source, lines, id
         );

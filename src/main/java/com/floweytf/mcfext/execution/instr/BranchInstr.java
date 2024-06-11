@@ -14,14 +14,13 @@ import net.minecraft.commands.execution.Frame;
  * </pre>
  *
  * @param target The instruction to jump to.
- * @param <T>    The command source.
  */
 public record BranchInstr<T>(int target) implements ControlInstr<T> {
-    private static final BranchInstr<?> EXIT_INSTR_INSTR = new BranchInstr<>(Integer.MAX_VALUE);
+    private static final BranchInstr<?> EXIT = new BranchInstr<>(Integer.MAX_VALUE);
 
     @SuppressWarnings("unchecked")
-    public static <T> BranchInstr<T> exitInstr() {
-        return (BranchInstr<T>) EXIT_INSTR_INSTR;
+    public static <T> BranchInstr<T> exit() {
+        return (BranchInstr<T>) EXIT;
     }
 
     @Override

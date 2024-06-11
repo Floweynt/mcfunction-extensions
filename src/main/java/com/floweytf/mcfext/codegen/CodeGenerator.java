@@ -17,8 +17,6 @@ import java.util.function.Supplier;
 /**
  * The main code generation class, used to emit "instructions." Supports address labels for advanced control flow
  * constructs.
- *
- * @param <T> The command source.
  */
 public class CodeGenerator<T extends ExecutionCommandSource<T>> {
     protected final FunctionBuilder<T> builder = new FunctionBuilder<>() {

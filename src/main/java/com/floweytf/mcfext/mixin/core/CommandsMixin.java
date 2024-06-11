@@ -1,6 +1,6 @@
 package com.floweytf.mcfext.mixin.core;
 
-import com.floweytf.mcfext.parse.Parser;
+import com.floweytf.mcfext.parse.parser.Parser;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.Commands;
 import org.spongepowered.asm.mixin.Mixin;

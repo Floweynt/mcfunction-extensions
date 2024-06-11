@@ -1,6 +1,8 @@
 package com.floweytf.mcfext.execution;
 
 import com.floweytf.mcfext.execution.instr.ControlInstr;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntStack;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -38,8 +40,8 @@ import org.jetbrains.annotations.NotNull;
  * POP[type](...) // Pop from the stack
  * PEEK[type](...) // Peek from the stack
  * %reg = ... // Store to register
- * label: // Declare label
- * %reg = &label // Address of label
+ * target: // Declare target
+ * %reg = &target // Address of target
  *
  * // Additionally, the following "macros" are defined:
  * BR(addr) ::= %ip = addr
@@ -53,13 +55,19 @@ import org.jetbrains.annotations.NotNull;
  * RET ::= %ip = POP{InstrAddress}
  * </pre>
  *
+ * <h3>Base Pointer Stack</h3>
+ * The base pointer stack is only really used for subroutine calls. It stores where to pop the stack to when
+ * returning from a subroutine.
+ *
  * @param <T> The command source type.
  */
 public class FuncExecState<T> {
     public final FuncExecStack<T> stack = new FuncExecStack<>();
+    public final IntStack basePointerStack = new IntArrayList();
+
     @NotNull
     public T source;
-    public int instr;
+    public int instr = 0;
 
     public FuncExecState(@NotNull T source) {
         this.source = source;

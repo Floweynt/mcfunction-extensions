@@ -31,7 +31,9 @@ public class ParseFeatureSet {
         return subroutines;
     }
 
-    public boolean isDebugDump() { return debugDump; }
+    public boolean isDebugDump() {
+        return debugDump;
+    }
 
     public boolean set(String name, boolean value) {
         final var handler = CONSUMERS.get(name);

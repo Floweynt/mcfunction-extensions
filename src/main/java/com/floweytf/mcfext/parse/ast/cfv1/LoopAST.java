@@ -2,10 +2,12 @@ package com.floweytf.mcfext.parse.ast.cfv1;
 
 import com.floweytf.mcfext.codegen.CodeGenerator;
 import com.floweytf.mcfext.codegen.Linkable;
-import com.floweytf.mcfext.execution.ControlFlowEvalSource;
+import com.floweytf.mcfext.execution.FunctionExecSource;
 import com.floweytf.mcfext.execution.instr.ControlInstr;
+import com.floweytf.mcfext.parse.ParseContext;
 import com.floweytf.mcfext.parse.ast.ASTNode;
 import com.floweytf.mcfext.parse.ast.BlockAST;
+import com.floweytf.mcfext.parse.ast.CodegenContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.execution.UnboundEntryAction;
 
@@ -63,7 +65,7 @@ public class LoopAST extends ASTNode {
     }
 
     @Override
-    public void emit(CodeGenerator<CommandSourceStack> generator) {
+    public void emit(ParseContext parseCtx, CodegenContext codegenCtx, CodeGenerator<CommandSourceStack> generator) {
         final var wrapperFuncLabel = generator.defineLabel("cfv1$loop$wrapper_func");
         final var loopBeginLabel = generator.defineLabel("cfv1$loop$loop_begin");
         final var loopExitLabel = generator.defineLabel("cfv1$loop$loop_exit");
@@ -80,7 +82,7 @@ public class LoopAST extends ASTNode {
         generator.emitControlNamed("cfv1::loop::push_source_and_match", (state, context, frame) -> {
             state.stack.pushSource(state.source);
             state.stack.pushSourceList(new ArrayList<>());
-            action.execute(new ControlFlowEvalSource(state.source, state), context, frame);
+            action.execute(new FunctionExecSource(state.source, state), context, frame);
         });
 
         // loop_begin:
@@ -97,14 +99,14 @@ public class LoopAST extends ASTNode {
                     return;
                 }
 
-                final List<CommandSourceStack> list = state.stack.popSourceList();
+                final var list = state.stack.popSourceList();
                 state.stack.pushSourceList(list.subList(1, list.size()));
                 state.source = list.get(0);
             });
         });
 
         // ... body
-        body.emit(generator);
+        body.emit(parseCtx, codegenCtx, generator);
 
         // CALL(wrapper_function)
         // BR(&loop_begin)

@@ -12,9 +12,7 @@ import net.minecraft.commands.execution.Frame;
  * %ip = POP[InstrAddress]()
  * }
  * </pre>
- *
- * @param <T> The command source.
- */
+ **/
 public class RetInstr<T> implements ControlInstr<T> {
     private RetInstr() {
 
@@ -31,9 +29,9 @@ public class RetInstr<T> implements ControlInstr<T> {
     public void modifyState(FuncExecState<T> state, ExecutionContext<T> context, Frame frame) {
         state.instr = state.stack.popInstrAddress();
     }
-    
+
     @Override
     public String toString() {
-        return "builtin::ret[]";
+        return "builtin::ret";
     }
 }

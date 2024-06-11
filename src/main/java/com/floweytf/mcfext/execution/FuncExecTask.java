@@ -11,7 +11,6 @@ import java.util.List;
 /**
  * Rewrite of minecraft's continuation task to support control flow.
  *
- * @param <T> The type of the command source.
  * @see FuncExecState
  */
 public class FuncExecTask<T> implements EntryAction<T> {
@@ -20,13 +19,15 @@ public class FuncExecTask<T> implements EntryAction<T> {
     private final CommandQueueEntry<T> selfEntry;
     private final FuncExecState<T> state;
 
-    private FuncExecTask(List<UnboundEntryAction<T>> actions, Frame frame, T initialContext) {
+    private FuncExecTask(List<UnboundEntryAction<T>> actions, Frame frame,
+                         T initialSource) {
         this.actions = actions;
-        this.selfEntry = new CommandQueueEntry<>(frame, this);
-        this.state = new FuncExecState<>(initialContext);
+        this.selfEntry = new CommandQueueEntry<T>(frame, this);
+        this.state = new FuncExecState<>(initialSource);
     }
 
-    public static <T> void schedule(ExecutionContext<T> c, Frame f, List<UnboundEntryAction<T>> actions, T source) {
+    public static <T> void schedule(ExecutionContext<T> c, Frame f,
+                                    List<UnboundEntryAction<T>> actions, T source) {
         if (actions.isEmpty())
             return;
 

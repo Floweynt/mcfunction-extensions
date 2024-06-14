@@ -4,12 +4,12 @@ import com.floweytf.mcfext.codegen.CodeGenerator;
 import com.floweytf.mcfext.codegen.Linkable;
 import com.floweytf.mcfext.execution.FunctionExecSource;
 import com.floweytf.mcfext.execution.instr.ControlInstr;
-import com.floweytf.mcfext.parse.ParseContext;
+import com.floweytf.mcfext.parse.ControlFlowStatement;
+import com.floweytf.mcfext.parse.Diagnostics;
 import com.floweytf.mcfext.parse.ast.ASTNode;
 import com.floweytf.mcfext.parse.ast.BlockAST;
 import com.floweytf.mcfext.parse.ast.CodegenContext;
 import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.execution.UnboundEntryAction;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,33 +47,36 @@ import java.util.function.Consumer;
  */
 public class RunAST extends ASTNode {
     private final BlockAST body;
-    private final UnboundEntryAction<CommandSourceStack> action;
+    private final ControlFlowStatement<CommandSourceStack> statement;
 
-    public RunAST(BlockAST body, UnboundEntryAction<CommandSourceStack> action) {
+    public RunAST(BlockAST body, ControlFlowStatement<CommandSourceStack> statement) {
         this.body = body;
-        this.action = action;
+        this.statement = statement;
     }
 
     @Override
-    public void emit(ParseContext parseCtx, CodegenContext codegenCtx, CodeGenerator<CommandSourceStack> generator) {
-        final var loopBegin = generator.defineLabel("cfv1$run$loop_begin");
-        final var loopExit = generator.defineLabel("cfv1$run$loop_exit");
+    public void emit(Diagnostics diagnostics, CodegenContext cgCtx, CodeGenerator<CommandSourceStack> gen) {
+        final var loopBegin = gen.defineLabel("cfv1$run$loop_begin");
+        final var loopExit = gen.defineLabel("cfv1$run$loop_exit");
 
         // PUSH[Source](%source)
         // PUSH[SourceList](runSelectors())
-        generator.emitControlNamed("cfv1::run::push_source_and_match", (state, context, frame) -> {
-            state.stack.pushSource(state.source);
-            state.stack.pushSourceList(new ArrayList<>());
-            action.execute(new FunctionExecSource(state.source, state), context, frame);
-        });
+        statement.emit(gen, action -> ControlInstr.named(
+            "cfv1::loop::push_source_and_match",
+            (state, context, frame) -> {
+                state.stack.pushSource(state.source);
+                state.stack.pushSourceList(new ArrayList<>());
+                action.execute(new FunctionExecSource(state.source, state), context, frame);
+            }
+        ));
 
         // loop_begin:
-        generator.emitLabel(loopBegin);
+        gen.emitLabel(loopBegin);
 
         // %0 = PEEK[Source](%source)
         // BR_COND(%0.isEmpty(), &loop_exit)
         // %source = %0.popFront()
-        generator.emitControlLinkable(List.of(loopExit), () -> {
+        gen.emitControlLinkable(List.of(loopExit), () -> {
             final var loopExitTarget = loopExit.offset();
             return ControlInstr.named("cfv1::run::pop_source_or_branch", (state, context, frame) -> {
                 if (state.stack.peekSourceList().isEmpty()) {
@@ -88,17 +91,17 @@ public class RunAST extends ASTNode {
         });
 
         // body
-        body.emit(parseCtx, codegenCtx, generator);
+        body.emit(diagnostics, cgCtx, gen);
 
         // BR(&loop_begin)
-        generator.emitLinkable(Linkable.branch(loopBegin));
+        gen.emitLinkable(Linkable.branch(loopBegin));
 
         // loop_exit:
-        generator.emitLabel(loopExit);
+        gen.emitLabel(loopExit);
 
         // POP[SourceList]()
         // %source = POP[Source]()
-        generator.emitControlNamed("cfv1::run::cleanup", (state, context, frame) -> {
+        gen.emitControlNamed("cfv1::run::cleanup", (state, context, frame) -> {
             state.stack.popSourceList();
             state.source = state.stack.popSource();
         });
@@ -111,6 +114,6 @@ public class RunAST extends ASTNode {
 
     @Override
     public String toString() {
-        return "RunAST[" + action + "]";
+        return "RunAST[" + statement + "]";
     }
 }

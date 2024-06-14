@@ -4,30 +4,29 @@ import com.floweytf.mcfext.codegen.CodeGenerator;
 import com.floweytf.mcfext.parse.Diagnostics;
 import net.minecraft.commands.CommandSourceStack;
 
-import java.util.List;
 import java.util.function.Consumer;
 
-public class BlockAST extends ASTNode {
-    private final List<ASTNode> children;
+public class MacroAST extends ASTNode {
+    private final int lineNo;
+    private final String text;
 
-    public BlockAST(List<ASTNode> children) {
-        this.children = children;
+    public MacroAST(int lineNo, String text) {
+        this.lineNo = lineNo;
+        this.text = text;
     }
 
     @Override
     public void emit(Diagnostics diagnostics, CodegenContext cgCtx, CodeGenerator<CommandSourceStack> gen) {
-        for (final var child : children) {
-            child.emit(diagnostics, cgCtx, gen);
-        }
+        gen.emitMacro(text, lineNo);
     }
 
     @Override
     public void visit(Consumer<ASTNode> visitor) {
-        children.forEach(visitor);
+
     }
 
     @Override
     public String toString() {
-        return "BlockAST";
+        return "MacroAST[" + lineNo + ", '" + text + "']";
     }
 }

@@ -2,7 +2,7 @@ package com.floweytf.mcfext.parse.ast;
 
 import com.floweytf.mcfext.codegen.CodeGenerator;
 import com.floweytf.mcfext.execution.instr.BranchInstr;
-import com.floweytf.mcfext.parse.ParseContext;
+import com.floweytf.mcfext.parse.Diagnostics;
 import net.minecraft.commands.CommandSourceStack;
 
 import java.util.function.Consumer;
@@ -12,8 +12,8 @@ import java.util.function.Consumer;
  */
 public class ReturnAST extends ASTNode {
     @Override
-    public void emit(ParseContext parseCtx, CodegenContext codegenCtx, CodeGenerator<CommandSourceStack> generator) {
-        generator.emitControl(BranchInstr.exit());
+    public void emit(Diagnostics diagnostics, CodegenContext cgCtx, CodeGenerator<CommandSourceStack> gen) {
+        gen.emitControl(BranchInstr.exit());
     }
 
     @Override

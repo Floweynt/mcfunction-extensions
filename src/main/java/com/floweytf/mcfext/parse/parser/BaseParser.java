@@ -9,12 +9,10 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import static com.floweytf.mcfext.util.CommandUtil.*;
 
 public class BaseParser {
-    public static final String ERR_PRAGMA = "failed to parse pragma: %s";
-    public static final String ERR_PRAGMA_BAD_FEAT = "unknown pragma feature flag %s";
     private static final CommandDispatcher<Parser> PRAGMA_DISPATCH = new CommandDispatcher<>();
 
     public static void init() {
-        final var PRAGMA_BAD_FEAT = exceptionType(s -> ComponentUtils.fLiteral(ERR_PRAGMA_BAD_FEAT, s));
+        final var PRAGMA_BAD_FEAT = exceptionType(s -> ComponentUtils.fLiteral("unknown pragma feature flag %s", s));
 
         PRAGMA_DISPATCH.register(lit("pragma", lit("enable", arg("flag", StringArgumentType.word(), (context) -> {
             final var value = StringArgumentType.getString(context, "flag");
@@ -30,24 +28,32 @@ public class BaseParser {
             return 0;
         }))));
 
-        Parser.register("pragma", (parser, text, lineNo) -> {
-            try {
-                PRAGMA_DISPATCH.execute(text, parser);
-            } catch (CommandSyntaxException e) {
-                parser.context.reportErr(lineNo, ERR_PRAGMA, e.getMessage());
+        Parser.register(
+            "pragma",
+            false,
+            (parser, text, lineNo, context) -> {
+                try {
+                    PRAGMA_DISPATCH.execute(text, parser);
+                } catch (CommandSyntaxException e) {
+                    parser.context.reportErr(lineNo, "failed to parse pragma: %s", e.getMessage());
+                }
+
+                parser.reader.next(); // eat it
+                return FeatureParseResult.parseNext();
             }
+        );
 
-            parser.reader.next(); // eat it
-            return Parser.Result.parseNext();
-        });
+        Parser.register(
+            "return",
+            false,
+            (parser, text, lineNo, context) -> {
+                if (!text.equals("return")) {
+                    return FeatureParseResult.fallthrough();
+                }
 
-        Parser.register("return", (parser, text, lineNo) -> {
-            if (!text.equals("return")) {
-                return Parser.Result.fallthrough();
+                parser.reader.next();
+                return FeatureParseResult.ast(new ReturnAST());
             }
-
-            parser.reader.next();
-            return Parser.Result.ast(new ReturnAST());
-        });
+        );
     }
 }

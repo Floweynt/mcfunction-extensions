@@ -22,7 +22,7 @@ public class CommandLineReader {
         index = 0;
     }
 
-    public static CommandLineReader fromLines(ParseContext context, List<String> lines) {
+    public static CommandLineReader fromLines(Diagnostics context, List<String> lines) {
         final var entries = new ArrayList<String>();
         final var entryLineNumbers = new IntArrayList();
 

@@ -3,6 +3,7 @@ package com.floweytf.mcfext.parse.parser;
 import com.floweytf.mcfext.codegen.CodeGenerator;
 import com.floweytf.mcfext.codegen.DebugCodeGenerator;
 import com.floweytf.mcfext.parse.CommandLineReader;
+import com.floweytf.mcfext.parse.Diagnostics;
 import com.floweytf.mcfext.parse.ParseContext;
 import com.floweytf.mcfext.parse.ParseFeatureSet;
 import com.floweytf.mcfext.parse.ast.*;
@@ -28,68 +29,25 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public class Parser {
-    static class Result {
-        private enum Action {
-            RETURN,
-            CONTINUE,
-            FALLTHROUGH
-        }
-
-        private final Action action;
-        @Nullable
-        private final ASTNode value;
-
-        private Result(Action action, @Nullable ASTNode value) {
-            this.action = action;
-            this.value = value;
-        }
-
-        public static Result parseNext() {
-            return new Result(Action.CONTINUE, null);
-        }
-
-        public static Result fallthrough() {
-            return new Result(Action.FALLTHROUGH, null);
-        }
-
-        public static Result ast(ASTNode node) {
-            return new Result(Action.RETURN, node);
-        }
+    interface ParseHandler {
+        FeatureParseResult doParse(Parser parser, String text, int lineNo, ParseContext context);
     }
 
-    interface FullParseHandler {
-        Result doParse(Parser parser, String text, int lineNo, boolean isTopLevel, boolean isInSubroutine);
-    }
-
-    interface SimpleParseHandler {
-        Result doParse(Parser parser, String text, int lineNo);
-    }
-
-    private record FeatureHandlerEntry(FullParseHandler handler, Predicate<ParseFeatureSet> enablePred,
-                                       String message) {
-
+    private record FeatureHandlerEntry(ParseHandler handler, boolean recvMacro, Predicate<ParseFeatureSet> enablePred,
+                                       String notEnabledWarning) {
     }
 
     private static final Logger LOGGER = LogManager.getLogger("FunctionParser");
     private static final Map<String, FeatureHandlerEntry> FEATURE_HANDLER = new HashMap<>();
 
-    public static final String ERR_PARSE_CMD = "failed to parse command: %s";
-    public static final String ERR_BAD_CMD = "unknown or invalid command '%s' (use '#' not '//' for comments)";
-
-    static void register(String name, FullParseHandler handler, Predicate<ParseFeatureSet> enablePred, String error) {
-        FEATURE_HANDLER.put(name, new FeatureHandlerEntry(handler, enablePred, error));
+    static void register(
+        String name, boolean recvMacro, ParseHandler handler, Predicate<ParseFeatureSet> enablePred, String error
+    ) {
+        FEATURE_HANDLER.put(name, new FeatureHandlerEntry(handler, recvMacro, enablePred, error));
     }
 
-    static void register(String name, SimpleParseHandler handler, Predicate<ParseFeatureSet> enablePred, String error) {
-        register(name, (parser, text, lineNo, _0, _1) -> handler.doParse(parser, text, lineNo), enablePred, error);
-    }
-
-    static void register(String name, FullParseHandler handler) {
-        register(name, handler, f -> true, null);
-    }
-
-    static void register(String name, SimpleParseHandler handler) {
-        register(name, handler, f -> true, null);
+    static void register(String name, boolean recvMacro, ParseHandler handler) {
+        register(name, recvMacro, handler, f -> true, null);
     }
 
     public static void init(CommandBuildContext access) {
@@ -98,7 +56,7 @@ public class Parser {
         ExtensionSubroutineParser.init();
     }
 
-    final ParseContext context;
+    final Diagnostics context;
     final CommandLineReader reader;
     final CommandSourceStack dummySource;
     final CommandDispatcher<CommandSourceStack> dispatcher;
@@ -155,29 +113,44 @@ public class Parser {
 
     @Nullable
     ASTNode parseNextCommand(boolean isTopLevel, boolean isInSubroutine) {
-        int prevIndex = -1;
+        var prevIndex = -1;
 
         while (reader.present()) {
+            // Rather than leak memory by infinite loop, we check if the parser has eaten the next token
+            // This forces the parser to terminate in linear bounded time (context-sensitive grammar)
             if (reader.index() == prevIndex) {
                 throw new IllegalStateException("internal error: parser failed to advance");
             }
             prevIndex = reader.index();
 
-            final var text = reader.curr();
+            // Stupid stuff
+            final var line = reader.curr();
+            final var isMacro = line.startsWith("$");
+            final var text = isMacro ? line.substring(1) : line;
             final var lineNo = reader.lineNumber();
-            final var parts = text.split(" ", 2);
 
+            // Generate diagnostic for empty macro statements
+            if (isMacro && text.length() == 1) {
+                reader.next();
+                context.reportErr(lineNo, "empty macro statement is not allowed");
+            }
+
+            final var parts = text.split(" ", 2);
             final var entry = FEATURE_HANDLER.get(parts[0]);
 
-            // handle features
-            if (entry != null) {
+            // Handle feature parsers
+            if (entry != null && (!isMacro || entry.recvMacro())) {
                 if (!entry.enablePred.test(features)) {
-                    context.reportWarn(lineNo, entry.message);
+                    context.reportWarn(lineNo, entry.notEnabledWarning);
                 } else {
-                    final var res = entry.handler.doParse(this, text, lineNo, isTopLevel, isInSubroutine);
-                    switch (res.action) {
+                    final var res = entry.handler.doParse(
+                        this, text, lineNo,
+                        new ParseContext(isMacro, isTopLevel, isInSubroutine)
+                    );
+
+                    switch (res.action()) {
                     case RETURN:
-                        return res.value;
+                        return res.value();
                     case CONTINUE:
                         continue;
                     case FALLTHROUGH:
@@ -185,20 +158,24 @@ public class Parser {
                 }
             }
 
-            // handle commands
-            final var res = parseCommand(
-                dispatcher, new StringReader(text),
-                msg -> context.reportErr(lineNo, ERR_PARSE_CMD, msg)
-            );
-
-            reader.next();
-
-            if (res.isEmpty()) {
-                context.reportErr(lineNo, ERR_BAD_CMD, text);
+            // Handle vanilla
+            reader.next(); // Eat the current line
+            if (isMacro) {
+                // Handle vanilla macros
+                return new MacroAST(lineNo, text);
             } else {
-                return new CommandAST(res.get());
+                // Handle vanilla commands
+                final var res = parseCommand(
+                    dispatcher, new StringReader(text),
+                    msg -> context.reportErr(lineNo, "failed to parse command: '%s'", msg)
+                );
+
+                if (res.isPresent()) {
+                    return new CommandAST(res.get());
+                }
             }
         }
+
 
         return null;
     }
@@ -222,7 +199,7 @@ public class Parser {
         return new TopLevelAST(new BlockAST(children), subroutine);
     }
 
-    private Parser(ParseContext context, List<String> lines, CommandSourceStack dummySource,
+    private Parser(Diagnostics context, List<String> lines, CommandSourceStack dummySource,
                    CommandDispatcher<CommandSourceStack> dispatcher) {
         this.context = context;
         this.dispatcher = dispatcher;
@@ -243,26 +220,33 @@ public class Parser {
     public static CommandFunction<CommandSourceStack> compileFunction(
         CommandDispatcher<CommandSourceStack> dispatcher,
         CommandSourceStack dummySource, List<String> lines, ResourceLocation id) {
-        final var parseCtx = new ParseContext();
-        final var parser = new Parser(parseCtx, lines, dummySource, dispatcher);
+        final var diagnostics = new Diagnostics();
+        final var parser = new Parser(diagnostics, lines, dummySource, dispatcher);
         final var ast = parser.parseTopLevel();
 
-        if (parseCtx.dumpErrors(2, LOGGER, id, lines)) {
+        if (diagnostics.hasError()) {
+            diagnostics.dumpErrors(2, LOGGER, id, lines);
             return null;
         }
 
         final var context = new CodegenContext();
+        final var shouldDebugDump = parser.features.isDebugDump();
 
-        if (parser.features.isDebugDump()) {
-            final var codegen = new DebugCodeGenerator();
-            ast.emit(parseCtx, context, codegen);
-            final var res = codegen.define(id);
+        final CodeGenerator<CommandSourceStack> codegen = shouldDebugDump ? new DebugCodeGenerator<>() :
+            new CodeGenerator<>();
+
+        ast.emit(diagnostics, context, codegen);
+
+        if (shouldDebugDump) {
             LOGGER.info("AST dump: \n{}\nCodegen dump: \n{}\n----", ast.dump(), codegen.dumpDisassembly());
-            return res;
-        } else {
-            final var codegen = new CodeGenerator();
-            ast.emit(parseCtx, context, codegen);
-            return codegen.define(id);
         }
+
+        diagnostics.dumpErrors(2, LOGGER, id, lines);
+
+        if (diagnostics.hasError()) {
+            return null;
+        }
+
+        return codegen.define(id);
     }
 }

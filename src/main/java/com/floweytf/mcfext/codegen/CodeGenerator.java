@@ -1,17 +1,20 @@
 package com.floweytf.mcfext.codegen;
 
 import com.floweytf.mcfext.execution.instr.ControlInstr;
+import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntObjectPair;
 import net.minecraft.commands.ExecutionCommandSource;
 import net.minecraft.commands.execution.UnboundEntryAction;
 import net.minecraft.commands.functions.CommandFunction;
 import net.minecraft.commands.functions.FunctionBuilder;
 import net.minecraft.commands.functions.MacroFunction;
+import net.minecraft.commands.functions.StringTemplate;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
 /**
@@ -66,6 +69,15 @@ public class CodeGenerator<T extends ExecutionCommandSource<T>> {
         builder.addMacro(data, lineNo);
     }
 
+    public void emitMacroCustom(String data, BiFunction<StringTemplate, IntList, MacroFunction.Entry<T>> entry) {
+        builder.addMacro(data, 0);
+        // hack
+        assert builder.macroEntries != null;
+        final var lastIndex = builder.macroEntries.size() - 1;
+        final var macroEntry = (MacroFunction.MacroEntry<T>) builder.macroEntries.get(lastIndex);
+        builder.macroEntries.set(lastIndex, entry.apply(macroEntry.template, macroEntry.parameters));
+    }
+
     public void emitLinkable(Linkable<T> linkable) {
         linkables.add(IntObjectPair.of(nextInstrIndex(), linkable));
         (builder.plainEntries == null ? builder.macroEntries : builder.plainEntries).add(null);
@@ -93,11 +105,16 @@ public class CodeGenerator<T extends ExecutionCommandSource<T>> {
             if (builder.plainEntries != null) {
                 builder.plainEntries.set(linkableInfo.firstInt(), linkableInfo.second().link());
             } else {
+                assert builder.macroEntries != null;
                 builder.macroEntries.set(linkableInfo.firstInt(),
                     new MacroFunction.PlainTextEntry<>(linkableInfo.second().link()));
             }
         }
 
         return builder.build(id);
+    }
+
+    public String dumpDisassembly() {
+        throw new IllegalStateException();
     }
 }

@@ -2,7 +2,7 @@ package com.floweytf.mcfext.parse.ast.subroutine;
 
 import com.floweytf.mcfext.codegen.CodeGenerator;
 import com.floweytf.mcfext.execution.instr.SubroutineRetInstr;
-import com.floweytf.mcfext.parse.ParseContext;
+import com.floweytf.mcfext.parse.Diagnostics;
 import com.floweytf.mcfext.parse.ast.ASTNode;
 import com.floweytf.mcfext.parse.ast.CodegenContext;
 import net.minecraft.commands.CommandSourceStack;
@@ -15,8 +15,8 @@ import java.util.function.Consumer;
  */
 public class SubroutineReturnAST extends ASTNode {
     @Override
-    public void emit(ParseContext parseCtx, CodegenContext codegenCtx, CodeGenerator<CommandSourceStack> generator) {
-        generator.emitControl(SubroutineRetInstr.get());
+    public void emit(Diagnostics diagnostics, CodegenContext cgCtx, CodeGenerator<CommandSourceStack> gen) {
+        gen.emitControl(SubroutineRetInstr.get());
     }
 
     @Override

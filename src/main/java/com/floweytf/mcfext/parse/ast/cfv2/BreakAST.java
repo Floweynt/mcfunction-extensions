@@ -1,8 +1,7 @@
 package com.floweytf.mcfext.parse.ast.cfv2;
 
 import com.floweytf.mcfext.codegen.CodeGenerator;
-import com.floweytf.mcfext.parse.Diagnostic;
-import com.floweytf.mcfext.parse.ParseContext;
+import com.floweytf.mcfext.parse.Diagnostics;
 import com.floweytf.mcfext.parse.ast.ASTNode;
 import com.floweytf.mcfext.parse.ast.CodegenContext;
 import net.minecraft.commands.CommandSourceStack;
@@ -17,9 +16,9 @@ public class BreakAST extends ASTNode {
     }
 
     @Override
-    public void emit(ParseContext parseCtx, CodegenContext codegenCtx, CodeGenerator<CommandSourceStack> generator) {
-        if (codegenCtx.breakExitLabel() == null) {
-            parseCtx.reportErr(lineNo, Diagnostic.ERR_BAD_BREAK);
+    public void emit(Diagnostics diagnostics, CodegenContext cgCtx, CodeGenerator<CommandSourceStack> gen) {
+        if (cgCtx.breakExitLabel() == null) {
+            diagnostics.reportErr(lineNo, "'break' may only be used inside iterative control flow");
         }
     }
 

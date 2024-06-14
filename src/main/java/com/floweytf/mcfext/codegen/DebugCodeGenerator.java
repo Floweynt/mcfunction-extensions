@@ -7,10 +7,12 @@ import net.minecraft.commands.ExecutionCommandSource;
 import net.minecraft.commands.execution.UnboundEntryAction;
 import net.minecraft.commands.functions.CommandFunction;
 import net.minecraft.commands.functions.MacroFunction;
+import net.minecraft.commands.functions.StringTemplate;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiFunction;
 
 public class DebugCodeGenerator<T extends ExecutionCommandSource<T>> extends CodeGenerator<T> {
     private final List<String> disassembly = new ArrayList<>();
@@ -40,6 +42,12 @@ public class DebugCodeGenerator<T extends ExecutionCommandSource<T>> extends Cod
     public void emitMacro(String data, int lineNo) {
         disassembly.add("  MACRO " + data);
         super.emitMacro(data, lineNo);
+    }
+
+    @Override
+    public void emitMacroCustom(String data, BiFunction<StringTemplate, IntList, MacroFunction.Entry<T>> entry) {
+        disassembly.add("  MACRO " + data);
+        super.emitMacroCustom(data, entry);
     }
 
     @Override

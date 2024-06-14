@@ -57,7 +57,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * <h3>Base Pointer Stack</h3>
  * The base pointer stack is only really used for subroutine calls. It stores where to pop the stack to when
- * returning from a subroutine.
+ * returning from a subroutine. This is "similar" to the %rbp/%ebp register on x86.
  *
  * @param <T> The command source type.
  */

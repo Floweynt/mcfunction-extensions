@@ -6,8 +6,10 @@ accessible class net/minecraft/commands/functions/FunctionBuilder
 accessible field net/minecraft/commands/CommandSourceStack permissionLevel I
 accessible field net/minecraft/commands/functions/FunctionBuilder macroEntries Ljava/util/List;
 accessible field net/minecraft/commands/functions/FunctionBuilder plainEntries Ljava/util/List;
-accessible method net/minecraft/commands/functions/FunctionBuilder <init> ()V
+accessible field net/minecraft/commands/functions/MacroFunction$MacroEntry parameters Lit/unimi/dsi/fastutil/ints/IntList;
+accessible field net/minecraft/commands/functions/MacroFunction$MacroEntry template Lnet/minecraft/commands/functions/StringTemplate;
 accessible field net/minecraft/commands/functions/MacroFunction$PlainTextEntry compiledAction Lnet/minecraft/commands/execution/UnboundEntryAction;
+accessible method net/minecraft/commands/functions/FunctionBuilder <init> ()V
 accessible method net/minecraft/commands/functions/CommandFunction shouldConcatenateNextLine (Ljava/lang/CharSequence;)Z
 accessible method net/minecraft/server/commands/ExecuteCommand addConditionals (Lcom/mojang/brigadier/tree/CommandNode;Lcom/mojang/brigadier/builder/LiteralArgumentBuilder;ZLnet/minecraft/commands/CommandBuildContext;)Lcom/mojang/brigadier/builder/ArgumentBuilder;
 accessible method net/minecraft/server/commands/ExecuteCommand spawnEntityAndRedirect (Lnet/minecraft/commands/CommandSourceStack;Lnet/minecraft/core/Holder$Reference;)Lnet/minecraft/commands/CommandSourceStack;

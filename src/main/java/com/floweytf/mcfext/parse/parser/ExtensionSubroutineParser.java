@@ -7,17 +7,16 @@ import com.floweytf.mcfext.parse.ast.subroutine.SubroutineDefinitionAST;
 import com.floweytf.mcfext.parse.ast.subroutine.SubroutineReturnAST;
 
 public class ExtensionSubroutineParser {
-    private static final String ERR_UNCLOSED = "unclosed subroutine definition";
-    private static final String ERR_NOT_TOP_LEVEL = "subroutine definition is only allowed at the top level";
-
     public static void init() {
+        final var notEnabled = "subroutines are not enabled (consider adding 'pragma enable subroutine')";
         Parser.register(
             "subroutine",
-            (parser, text, lineNo, isTopLevel, isInSubroutine) -> {
+            false,
+            (parser, text, lineNo, context) -> {
                 parser.reader.next();
 
-                if (!isTopLevel) {
-                    parser.context.reportErr(lineNo, ERR_NOT_TOP_LEVEL);
+                if (!context.isTopLevel()) {
+                    parser.context.reportErr(lineNo, "subroutine definition is only allowed at the top level");
                 }
 
                 final var parts = text.split(" ");
@@ -25,15 +24,15 @@ public class ExtensionSubroutineParser {
                     parser.context.reportErr(lineNo, "bad subroutine definition, expected 'subroutine <identifier>'");
 
                     if (parts.length == 1 || parts[1].isEmpty()) {
-                        return Parser.Result.ast(null);
+                        return FeatureParseResult.ast(null);
                     }
                 }
 
-                return Parser.Result.ast(new SubroutineDefinitionAST(
+                return FeatureParseResult.ast(new SubroutineDefinitionAST(
                     new BlockAST(
                         parser.parseBlock(
                             () -> parser.parseNextCommand(false, true), lineNo, "end",
-                            ERR_UNCLOSED
+                            "unclosed subroutine definition (missing 'end')"
                         )
                     ),
                     parts[1],
@@ -41,49 +40,50 @@ public class ExtensionSubroutineParser {
                 ));
             },
             ParseFeatureSet::isSubroutines,
-            "subroutines are not enabled, use 'pragma enable subroutine' to enable this feature"
+            notEnabled
         );
 
         Parser.register(
             "subroutine_return",
-            (parser, text, lineNo, isTopLevel, isInSubroutine) -> {
+            false,
+            (parser, text, lineNo, context) -> {
                 parser.reader.next();
 
                 if (!text.equals("subroutine_return")) {
                     parser.context.reportErr(lineNo, "subroutine_return takes no parameters");
                 }
 
-                if (!isInSubroutine) {
+                if (!context.isSubroutine()) {
                     parser.context.reportErr(lineNo, "subroutine_return is not valid outside of a subroutine");
                 }
 
-                return Parser.Result.ast(new SubroutineReturnAST());
+                return FeatureParseResult.ast(new SubroutineReturnAST());
             },
             ParseFeatureSet::isSubroutines,
-            "subroutines are not enabled, use 'pragma enable subroutine' to enable this feature"
+            notEnabled
         );
 
 
         Parser.register(
             "subroutine_call",
-            (parser, text, lineNo, isTopLevel, isInSubroutine) -> {
+            false,
+            (parser, text, lineNo, context) -> {
                 parser.reader.next();
 
                 final var parts = text.split(" ");
 
                 if (parts.length != 2 || parts[1].isEmpty()) {
-                    parser.context.reportErr(lineNo, "bad subroutine definition, expected 'subroutine_call " +
-                        "<identifier>'");
+                    parser.context.reportErr(lineNo, "bad subroutine call, expected 'subroutine_call <identifier>'");
 
                     if (parts.length == 1 || parts[1].isEmpty()) {
-                        return Parser.Result.ast(null);
+                        return FeatureParseResult.ast(null);
                     }
                 }
 
-                return Parser.Result.ast(new SubroutineCallAST(parts[1], lineNo));
+                return FeatureParseResult.ast(new SubroutineCallAST(parts[1], lineNo));
             },
             ParseFeatureSet::isSubroutines,
-            "subroutines are not enabled, use 'pragma enable subroutine' to enable this feature"
+            notEnabled
         );
     }
 }

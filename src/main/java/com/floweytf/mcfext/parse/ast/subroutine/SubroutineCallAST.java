@@ -2,7 +2,7 @@ package com.floweytf.mcfext.parse.ast.subroutine;
 
 import com.floweytf.mcfext.codegen.CodeGenerator;
 import com.floweytf.mcfext.execution.instr.SubroutineCallInstr;
-import com.floweytf.mcfext.parse.ParseContext;
+import com.floweytf.mcfext.parse.Diagnostics;
 import com.floweytf.mcfext.parse.ast.ASTNode;
 import com.floweytf.mcfext.parse.ast.CodegenContext;
 import net.minecraft.commands.CommandSourceStack;
@@ -22,13 +22,14 @@ public class SubroutineCallAST extends ASTNode {
     }
 
     @Override
-    public void emit(ParseContext parseCtx, CodegenContext codegenCtx, CodeGenerator<CommandSourceStack> generator) {
-        if (!codegenCtx.subroutines().containsKey(name)) {
-            parseCtx.reportErr(lineNo, ERR_SUBROUTINE_NOT_DEFINED, name);
+    public void emit(Diagnostics diagnostics, CodegenContext cgCtx, CodeGenerator<CommandSourceStack> gen) {
+        if (!cgCtx.subroutines().containsKey(name)) {
+            diagnostics.reportErr(lineNo, ERR_SUBROUTINE_NOT_DEFINED, name);
+            return;
         }
 
-        final var targetLabel = codegenCtx.subroutines().get(name);
-        generator.emitControlLinkable(List.of(targetLabel), () -> new SubroutineCallInstr<>(targetLabel.offset()));
+        final var targetLabel = cgCtx.subroutines().get(name);
+        gen.emitControlLinkable(List.of(targetLabel), () -> new SubroutineCallInstr<>(targetLabel.offset()));
     }
 
     @Override

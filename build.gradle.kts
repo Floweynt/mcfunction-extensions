@@ -1,6 +1,6 @@
 plugins {
     `java-library`
-    id("com.floweytf.paperweight-aw.userdev") version "1.0"
+    id("com.floweytf.paperweight-aw.userdev") version "1.1"
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
@@ -29,8 +29,6 @@ dependencies {
     // Required for server to start when running "Minecraft Server"
     implementation(libs.bundles.papermisc)
 
-    // Compile time: mixins, ignite, paper
-    implementation(libs.bundles.ignite)
     compileOnly(libs.bundles.mixin)
 
     // Tiny remapper
@@ -58,6 +56,8 @@ tasks {
 
     reobfJar {
         remapperArgs.add("--mixin")
+
+        finalizedBy("remapAccessWidener")
     }
 
     build {

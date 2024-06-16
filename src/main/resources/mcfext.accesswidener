@@ -1,4 +1,4 @@
-accessWidener v2 named
+accessWidener v2 mojang+yarn
 accessible class net/minecraft/commands/functions/MacroFunction$Entry
 accessible class net/minecraft/commands/functions/MacroFunction$PlainTextEntry
 accessible class net/minecraft/commands/functions/MacroFunction$MacroEntry
